@@ -62,7 +62,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#86A0A6',
-    padding: 20,
+    padding: 50
+    
   },
   backButton: {
     position: 'absolute',
@@ -85,12 +86,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginTop: 150, 
+    marginTop: 100, 
     marginBottom: 20,
     textAlign: 'center',
   },
   listContainer: {
     paddingBottom: 20,
+    marginBottom: 50,
+    
   },
   dicaCard: {
     backgroundColor: '#f0f0f0',

@@ -4,13 +4,12 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 interface HeaderProps {
-  showBackButton?: boolean; // Prop para controlar a visibilidade do botão de voltar
+  showBackButton?: boolean; 
 }
 
 const Header: React.FC<HeaderProps> = ({ showBackButton = true }) => {
   return (
     <View style={styles.container}>
-      {/* Botão de voltar (condicional) */}
       {showBackButton && (
         <TouchableOpacity
           style={styles.backButton}
@@ -20,10 +19,9 @@ const Header: React.FC<HeaderProps> = ({ showBackButton = true }) => {
         </TouchableOpacity>
       )}
 
-      {/* Logo no canto direito */}
       <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/image.png')} // Substitua pelo caminho da sua logo
+          source={require('../assets/image.png')} 
           style={styles.logo}
         />
       </View>
@@ -40,7 +38,7 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 10,
     marginBottom: 30,
-    backgroundColor: '#86A0A6', // Cor de fundo do header
+    backgroundColor: '#86A0A6', 
   },
   backButton: {
     zIndex: 1,

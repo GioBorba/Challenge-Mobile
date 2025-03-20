@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
-import Footer from '../components/footer'; 
-import Header from '../components/header'; 
+import { router, useLocalSearchParams } from 'expo-router';
+import Footer from '../components/footer';
+import Header from '../components/header';
 
 interface Consulta {
   id: string;
@@ -11,15 +11,28 @@ interface Consulta {
   data: string;
 }
 
+//Dados mockados
 const ListarConsultas: React.FC = () => {
   const [consultas, setConsultas] = useState<Consulta[]>([
     { id: '1', tipo: 'Limpeza', descricao: 'Limpeza completa', data: '2023-10-25' },
     { id: '2', tipo: 'Clareamento', descricao: 'Sessão 1 de 3', data: '2023-10-30' },
   ]);
 
+  
+  const params = useLocalSearchParams();
+  const novaConsulta = params.novaConsulta && typeof params.novaConsulta === 'string'
+    ? JSON.parse(params.novaConsulta)
+    : null;
+
+
+  useEffect(() => {
+    if (novaConsulta && !consultas.some((consulta) => consulta.id === novaConsulta.id)) {
+      setConsultas((prevConsultas) => [...prevConsultas, novaConsulta]);
+    }
+  }, [novaConsulta]);
+
   return (
     <View style={styles.container}>
-  
       <Header showBackButton={true} />
 
       <Text style={styles.title}>Minhas Consultas</Text>
@@ -59,13 +72,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginTop: 20, 
+    marginTop: 20,
     marginBottom: 20,
     textAlign: 'center',
   },
   listContainer: {
     paddingBottom: 20,
-    padding: 20
+    padding: 20,
   },
   consultaCard: {
     backgroundColor: '#f0f0f0',
@@ -76,7 +89,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3, 
+    elevation: 3,
   },
   consultaTipo: {
     fontSize: 18,

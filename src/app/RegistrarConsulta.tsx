@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { router } from 'expo-router';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'; 
-import Footer from '../components/footer'; 
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import Footer from '../components/footer';
 import Header from '../components/header';
 
 const RegistrarConsulta: React.FC = () => {
@@ -12,18 +12,31 @@ const RegistrarConsulta: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const handleRegistrar = () => {
+    if (!tipoTratamento.trim() || !descricao.trim()) {
+      alert('Por favor, preencha todos os campos.');
+      return;
+    }
+
+    const novaConsulta = {
+      id: Date.now().toString(), 
+      tipo: tipoTratamento,
+      descricao: descricao,
+      data: data.toLocaleDateString(),
+    };
+
     
-    console.log({ tipoTratamento, descricao, data });
-    router.push('/listar-consultas');
-    
+    router.push({
+      pathname: '/ListarConsultas',
+      params: { novaConsulta: JSON.stringify(novaConsulta) },
+    });
   };
 
   const handleCancelar = () => {
-    router.push('/dashboard'); 
+    router.push('/dashboard');
   };
 
   const onChangeData = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios'); 
+    setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setData(selectedDate);
     }
@@ -31,7 +44,7 @@ const RegistrarConsulta: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Header/>
+      <Header />
 
       <Text style={styles.title}>Registrar Consulta</Text>
 
@@ -86,21 +99,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#86A0A6',
     padding: 20,
   },
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    zIndex: 1,
-  },
-  logoContainer: {
-    alignItems: 'flex-end',
-    marginBottom: 20,
-  },
-  logo: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -127,7 +125,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20
+    marginTop: 20,
   },
   buttonCancelar: {
     backgroundColor: '#FF6B6B',

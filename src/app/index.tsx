@@ -31,7 +31,7 @@ export default function Home() {
       
       <View style={styles.linksContainer}>
         <Link href="/login" style={styles.link}>Logar</Link>
-        <Link href="/dashboard" style={styles.link}>Cadastrar</Link>
+        <Link href="/cadastro" style={styles.link}>Cadastrar</Link>
       </View>
     </View>
   );

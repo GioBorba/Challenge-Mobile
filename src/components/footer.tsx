@@ -1,12 +1,11 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { Link } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Importe os ícones
+import { Ionicons } from '@expo/vector-icons'; 
 
 const Footer: React.FC = () => {
   return (
     <View style={styles.footer}>
-      {/* Ícone para Consultas Registradas */}
       <Link href="ListarConsultas" asChild>
         <TouchableOpacity style={styles.iconButton}>
           <Ionicons name="list" size={24} color="#fff" />
@@ -14,7 +13,6 @@ const Footer: React.FC = () => {
         </TouchableOpacity>
       </Link>
 
-      {/* Ícone para Dicas */}
       <Link href="/dicas" asChild>
         <TouchableOpacity style={styles.iconButton}>
           <Ionicons name="bulb" size={24} color="#fff" />
@@ -22,7 +20,6 @@ const Footer: React.FC = () => {
         </TouchableOpacity>
       </Link>
 
-      {/* Ícone para Lembretes */}
       <Link href="/lembretes" asChild>
         <TouchableOpacity style={styles.iconButton}>
           <Ionicons name="alarm" size={24} color="#fff" />
@@ -30,7 +27,7 @@ const Footer: React.FC = () => {
         </TouchableOpacity>
       </Link>
 
-      {/* Ícone para Registrar Consulta */}
+      
       <Link href="/RegistrarConsulta" asChild>
         <TouchableOpacity style={styles.iconButton}>
           <Ionicons name="add-circle" size={24} color="#fff" />
@@ -53,7 +50,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     position: 'absolute',
     left: 0,
-    right: 0
+    right: 0,
+    
     
   },
   iconButton: {
