@@ -22,7 +22,7 @@ O aplicativo foi desenvolvido utilizando **React Native** e **Expo**, com integr
 
 ## 🎥 Vídeo de Demonstração
 
-Link: https://youtube.com/shorts/WzZJRor8QWg?feature=share
+Link: https://youtube.com/shorts/pUUBm9jcvuo
 
 
 
