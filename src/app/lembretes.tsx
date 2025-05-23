@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import Header from '../components/header';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Footer from '../components/footer';
 
 interface Lembrete {
@@ -30,26 +30,41 @@ const Lembretes: React.FC = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [lembreteEditando, setLembreteEditando] = useState<Lembrete | null>(null);
-  const [dataHoraAtual, setDataHoraAtual] = useState<Date | null>(null);
 
-  // API que busca a data e hora atuais 
+  // Carrega lembretes do AsyncStorage ao iniciar
   useEffect(() => {
-    const buscarDataHoraAtual = async () => {
+    const carregarLembretes = async () => {
       try {
-        const response = await fetch(
-          'https://www.timeapi.io/api/Time/current/zone?timeZone=America/Sao_Paulo'
-        );
-        const data = await response.json();
-        const dataHora = new Date(data.dateTime); 
-        setDataHoraAtual(dataHora);
+        const lembretesSalvos = await AsyncStorage.getItem('@lembretes');
+        if (lembretesSalvos) {
+          const lembretesParseados = JSON.parse(lembretesSalvos);
+          const lembretesFormatados = lembretesParseados.map((lembrete: any) => ({
+            ...lembrete,
+            data: new Date(lembrete.data),
+            hora: new Date(lembrete.hora)
+          }));
+          setLembretes(lembretesFormatados);
+        }
       } catch (error) {
-        console.error('Erro ao buscar data e hora:', error);
-        setDataHoraAtual(new Date()); 
+        console.error('Erro ao carregar lembretes:', error);
       }
     };
 
-    buscarDataHoraAtual();
+    carregarLembretes();
   }, []);
+
+  // Salva lembretes no AsyncStorage sempre que a lista muda
+  useEffect(() => {
+    const salvarLembretes = async () => {
+      try {
+        await AsyncStorage.setItem('@lembretes', JSON.stringify(lembretes));
+      } catch (error) {
+        console.error('Erro ao salvar lembretes:', error);
+      }
+    };
+
+    salvarLembretes();
+  }, [lembretes]);
 
   const selecionarData = () => setShowDatePicker(true);
   const selecionarHora = () => setShowTimePicker(true);
@@ -62,24 +77,29 @@ const Lembretes: React.FC = () => {
 
   const salvarLembrete = () => {
     if (!texto.trim()) {
-      alert('Por favor, insira um texto para o lembrete.');
+      Alert.alert('Atenção', 'Por favor, insira um texto para o lembrete.');
       return;
     }
 
     const dataHoraFinal = combinarDataHora();
+    const agora = new Date();
 
-    if (dataHoraAtual && dataHoraFinal <= dataHoraAtual) {
-      alert('A data e horário devem ser no futuro.');
+    if (dataHoraFinal <= agora) {
+      Alert.alert('Atenção', 'A data e horário devem ser no futuro.');
       return;
     }
 
     if (lembreteEditando) {
-      const novosLembretes = lembretes.map((lembrete) =>
+      setLembretes(lembretes.map((lembrete) =>
         lembrete.id === lembreteEditando.id ? { ...lembrete, texto, data, hora } : lembrete
-      );
-      setLembretes(novosLembretes);
+      ));
     } else {
-      const novoLembrete = { id: Date.now().toString(), texto, data, hora };
+      const novoLembrete = {
+        id: Date.now().toString(),
+        texto,
+        data,
+        hora
+      };
       setLembretes([...lembretes, novoLembrete]);
     }
 
@@ -91,47 +111,96 @@ const Lembretes: React.FC = () => {
   };
 
   const excluirLembrete = (id: string) => {
-    setLembretes((prevLembretes) => prevLembretes.filter((lembrete) => lembrete.id !== id));
+    Alert.alert(
+      'Confirmar exclusão',
+      'Tem certeza que deseja excluir este lembrete?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Excluir',
+          onPress: () => {
+            setLembretes(lembretes.filter((lembrete) => lembrete.id !== id));
+          },
+        },
+      ]
+    );
+  };
+
+  const editarLembrete = (lembrete: Lembrete) => {
+    setLembreteEditando(lembrete);
+    setTexto(lembrete.texto);
+    setData(new Date(lembrete.data));
+    setHora(new Date(lembrete.hora));
+    setModalVisible(true);
   };
 
   return (
     <View style={styles.container}>
-      <Header />
-      <Text style={styles.title}>Lembretes</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Lembretes</Text>
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => {
+            setLembreteEditando(null);
+            setTexto('');
+            setData(new Date());
+            setHora(new Date());
+            setModalVisible(true);
+          }}
+        >
+          <Ionicons name="add" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
+      
       <FlatList
         data={lembretes}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.lembreteCard}>
-            <Text style={styles.lembreteTexto}>{item.texto}</Text>
-            <Text style={styles.lembreteHorario}>Data: {item.data.toLocaleDateString()}</Text>
-            <Text style={styles.lembreteHorario}>Hora: {item.hora.toLocaleTimeString()}</Text>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => excluirLembrete(item.id)}
-            >
-              <Ionicons name="trash" size={20} color="#FF6B6B" />
-            </TouchableOpacity>
+            <View style={styles.lembreteContent}>
+              <Text style={styles.lembreteTexto}>{item.texto}</Text>
+              <Text style={styles.lembreteHorario}>
+                {item.data.toLocaleDateString()} às {item.hora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+            <View style={styles.lembreteActions}>
+              <TouchableOpacity onPress={() => editarLembrete(item)}>
+                <Ionicons name="pencil" size={20} color="#86A0A6" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => excluirLembrete(item.id)}>
+                <Ionicons name="trash" size={20} color="#FF6B6B" />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>Nenhum lembrete cadastrado</Text>
+        }
+        contentContainerStyle={styles.listContent}
       />
-      <TouchableOpacity style={styles.buttonCreate} onPress={() => setModalVisible(true)}>
-        <Text style={styles.buttonText}>Criar Lembrete</Text>
-      </TouchableOpacity>
 
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{lembreteEditando ? 'Editar Lembrete' : 'Criar Lembrete'}</Text>
+            <Text style={styles.modalTitle}>
+              {lembreteEditando ? 'Editar Lembrete' : 'Criar Lembrete'}
+            </Text>
+            
             <TextInput
               style={styles.input}
               placeholder="Texto do Lembrete"
               value={texto}
               onChangeText={setTexto}
+              multiline
             />
+            
             <TouchableOpacity style={styles.dateButton} onPress={selecionarData}>
               <Text>Data: {data.toLocaleDateString()}</Text>
             </TouchableOpacity>
+            
             {showDatePicker && (
               <DateTimePicker
                 value={data}
@@ -143,9 +212,11 @@ const Lembretes: React.FC = () => {
                 }}
               />
             )}
+            
             <TouchableOpacity style={styles.dateButton} onPress={selecionarHora}>
-              <Text>Hora: {hora.toLocaleTimeString()}</Text>
+              <Text>Hora: {hora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
             </TouchableOpacity>
+            
             {showTimePicker && (
               <DateTimePicker
                 value={hora}
@@ -157,78 +228,153 @@ const Lembretes: React.FC = () => {
                 }}
               />
             )}
+            
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+              <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={() => setModalVisible(false)}
+              >
                 <Text style={styles.buttonText}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.saveButton} onPress={salvarLembrete}>
+              
+              <TouchableOpacity 
+                style={styles.saveButton} 
+                onPress={salvarLembrete}
+              >
                 <Text style={styles.buttonText}>Salvar</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-      <Footer />
+      <Footer/>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#86A0A6' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff', textAlign: 'center' },
-  lembreteCard: {
-    backgroundColor: '#f0f0f0',
-    padding: 15,
-    margin: 10,
-    borderRadius: 10,
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f5f5f5',
+    paddingTop: 50,
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
-  lembreteTexto: { fontSize: 16, fontWeight: 'bold' },
-  lembreteHorario: { fontSize: 14, color: '#555' },
-  buttonCreate: {
+  title: { 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    color: '#333',
+  },
+  addButton: {
     backgroundColor: '#A5DAD2',
-    padding: 15,
-    borderRadius: 5,
-    margin: 50,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 100,
   },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
+  listContent: {
+    paddingHorizontal: 15,
+    paddingBottom: 20,
+  },
+  lembreteCard: {
+    backgroundColor: '#fff',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  lembreteContent: {
+    flex: 1,
+  },
+  lembreteTexto: { 
+    fontSize: 16, 
+    fontWeight: 'bold',
+    marginBottom: 5
+  },
+  lembreteHorario: { 
+    fontSize: 14, 
+    color: '#666' 
+  },
+  lembreteActions: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 20,
+    color: '#666',
+    fontSize: 16
+  },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContent: { width: '90%', backgroundColor: '#fff', padding: 20, borderRadius: 10 },
-  modalTitle: { color: 'black' },
-  input: { backgroundColor: '#f0f0f0', padding: 10, borderRadius: 5, marginBottom: 15 },
+  modalContent: { 
+    width: '90%', 
+    backgroundColor: '#fff', 
+    padding: 20, 
+    borderRadius: 10 
+  },
+  modalTitle: { 
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+    textAlign: 'center'
+  },
+  input: { 
+    backgroundColor: '#f0f0f0', 
+    padding: 12, 
+    borderRadius: 6, 
+    marginBottom: 15,
+    fontSize: 16
+  },
   dateButton: {
     backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 5,
+    padding: 12,
+    borderRadius: 6,
     alignItems: 'center',
     marginBottom: 15,
   },
-  modalButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
+  modalButtons: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    marginTop: 20 
+  },
   cancelButton: {
     backgroundColor: '#FF6B6B',
     flex: 1,
     marginRight: 10,
-    padding: 15,
-    borderRadius: 5,
+    padding: 12,
+    borderRadius: 6,
     alignItems: 'center',
   },
   saveButton: {
-    backgroundColor: '#A5DAD2',
+    backgroundColor: '#86A0A6',
     flex: 1,
-    padding: 15,
-    borderRadius: 5,
+    padding: 12,
+    borderRadius: 6,
     alignItems: 'center',
   },
-  deleteButton: { padding: 5 },
+  buttonText: { 
+    color: '#fff', 
+    fontWeight: 'bold' 
+  },
 });
 
 export default Lembretes;

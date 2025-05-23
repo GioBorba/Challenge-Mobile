@@ -1,18 +1,40 @@
 import { Link, router } from 'expo-router'; 
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { login } from '../service/authService';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    if (email.trim() && senha.trim()) {
-      router.push('/dashboard');
+const handleLogin = async () => {
+  if (!email.trim() || !senha.trim()) {
+    alert('Por favor, preencha o e-mail e a senha.');
+    return;
+  }
+
+  setLoading(true);
+  try {
+
+    await login({ email, senha });
+
+    router.push('/dashboard');
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      alert(error.message);
+    } else if (typeof error === 'string') {
+      alert(error);
     } else {
-      alert('Por favor, preencha o e-mail e a senha.');
+      alert('Erro ao fazer login');
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   return (
     <View style={styles.container}>
@@ -27,6 +49,9 @@ const LoginScreen = () => {
         placeholderTextColor="#aaa"
         value={email}
         onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
       />
 
       <Text style={styles.label}>Digite sua senha</Text>
@@ -46,8 +71,12 @@ const LoginScreen = () => {
           </Link>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonLogar} onPress={handleLogin}>
-          <Text style={styles.buttonTextLogar}>Logar</Text>
+        <TouchableOpacity
+          style={[styles.buttonLogar, loading && { opacity: 0.6 }]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          <Text style={styles.buttonTextLogar}>{loading ? 'Entrando...' : 'Logar'}</Text>
         </TouchableOpacity>
       </View>
     </View>

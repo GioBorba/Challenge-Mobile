@@ -1,60 +1,57 @@
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import api from '../service/api';
 
 const CadastroScreen = () => {
   const [email, setEmail] = useState('');
   const [usuario, setUsuario] = useState('');
   const [senha, setSenha] = useState('');
+  const [confirmaSenha, setConfirmaSenha] = useState('');
+
+  const handleCadastro = async () => {
+    if (!email || !usuario || !senha || !confirmaSenha) {
+      return Alert.alert("Erro", "Todos os campos são obrigatórios");
+    }
+
+    if (senha !== confirmaSenha) {
+      return Alert.alert("Erro", "As senhas não coincidem");
+    }
+
+    try {
+      const response = await api.post('/auth/cadastrar', {
+        email,
+        nome: usuario,
+        senha
+      });
+
+      Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
+      router.push('/login');
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Erro", "Erro ao cadastrar. Tente novamente.");
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../assets/image2.png')}
-        style={styles.image}
-      />
+      <Image source={require('../assets/image2.png')} style={styles.image} />
       <Text style={styles.title}>DentalCare</Text>
       <Text style={styles.subtitle}>Preencha os dados para cadastro</Text>
 
       <Text style={styles.label}>Digite seu e-mail</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="E-mail"
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <TextInput style={styles.input} placeholder="E-mail" placeholderTextColor="#aaa" value={email} onChangeText={setEmail} />
 
       <Text style={styles.label}>Digite seu nome de usuário</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Usuário"
-        placeholderTextColor="#aaa"
-        value={usuario}
-        onChangeText={setUsuario}
-      />
+      <TextInput style={styles.input} placeholder="Usuário" placeholderTextColor="#aaa" value={usuario} onChangeText={setUsuario} />
 
       <Text style={styles.label}>Digite sua senha</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        placeholderTextColor="#aaa"
-        secureTextEntry
-        value={senha}
-        onChangeText={setSenha}
-      />
+      <TextInput style={styles.input} placeholder="Senha" placeholderTextColor="#aaa" secureTextEntry value={senha} onChangeText={setSenha} />
 
       <Text style={styles.label}>Confirme sua senha</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        placeholderTextColor={"#aaa"}
-        secureTextEntry
-        value={senha}
-        onChangeText={setSenha}
-        />
+      <TextInput style={styles.input} placeholder="Senha" placeholderTextColor="#aaa" secureTextEntry value={confirmaSenha} onChangeText={setConfirmaSenha} />
 
-      <TouchableOpacity style={styles.buttonCadastrar}>
+      <TouchableOpacity style={styles.buttonCadastrar} onPress={handleCadastro}>
         <Text style={styles.buttonTextCadastrar}>Cadastrar</Text>
       </TouchableOpacity>
 
@@ -62,6 +59,8 @@ const CadastroScreen = () => {
     </View>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {

@@ -16,7 +16,7 @@ O **DentalCare** é um aplicativo móvel desenvolvido para auxiliar no gerenciam
 - **Configurem lembretes** para cuidados diários, como escovação e uso de fio dental.
 - **Acessem dicas de saúde bucal** para melhorar seus hábitos.
 
-O aplicativo foi desenvolvido utilizando **React Native** e **Expo**, com integração à **Time API** para validação de datas e horários para que os lembretes sejam criados apenas para o futuro e não em horários passados.
+O aplicativo foi desenvolvido utilizando **React Native** e **Expo**, com integração à **API** em Java para que cadastre os usuários no banco de dados, fazendo com que só possa logar se estiver cadastrado no banco de dados. Foi utilizado **AsyncStorage** para salvar as consultas e lembretes.
 
 ---
 
@@ -40,7 +40,9 @@ Expo: Facilita o desenvolvimento e build do aplicativo.
 
 TypeScript: Adiciona tipagem estática para melhor organização do código.
 
-Time API: Valida se a data/hora escolhida para os lembretes é futura.
+API em Java: Cadastra e loga usuários.
+
+Async Storage: Guarda as consultas e lembretes criados no app.
 
 Expo Router: Gerencia a navegação entre telas.
 

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import Footer from '../components/footer';
 import Header from '../components/header';
 
@@ -11,25 +13,52 @@ interface Consulta {
   data: string;
 }
 
-//Dados mockados
 const ListarConsultas: React.FC = () => {
-  const [consultas, setConsultas] = useState<Consulta[]>([
-    { id: '1', tipo: 'Limpeza', descricao: 'Limpeza completa', data: '2023-10-25' },
-    { id: '2', tipo: 'Clareamento', descricao: 'Sessão 1 de 3', data: '2023-10-30' },
-  ]);
+  const [consultas, setConsultas] = useState<Consulta[]>([]);
 
-  
-  const params = useLocalSearchParams();
-  const novaConsulta = params.novaConsulta && typeof params.novaConsulta === 'string'
-    ? JSON.parse(params.novaConsulta)
-    : null;
-
-
-  useEffect(() => {
-    if (novaConsulta && !consultas.some((consulta) => consulta.id === novaConsulta.id)) {
-      setConsultas((prevConsultas) => [...prevConsultas, novaConsulta]);
+  const carregarConsultas = async () => {
+    try {
+      const consultasSalvas = await AsyncStorage.getItem('consultas');
+      const lista = consultasSalvas ? JSON.parse(consultasSalvas) : [];
+      setConsultas(lista);
+    } catch (error) {
+      console.error('Erro ao carregar consultas:', error);
     }
-  }, [novaConsulta]);
+  };
+
+  const excluirConsulta = (id: string) => {
+    Alert.alert(
+      'Confirmação',
+      'Deseja realmente excluir esta consulta?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Excluir', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const novasConsultas = consultas.filter(c => c.id !== id);
+              setConsultas(novasConsultas);
+              await AsyncStorage.setItem('consultas', JSON.stringify(novasConsultas));
+            } catch (error) {
+              console.error('Erro ao excluir consulta:', error);
+              Alert.alert('Erro', 'Não foi possível excluir a consulta');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const editarConsulta = (id: string) => {
+    router.push(`/registrar-consulta?id=${id}`);
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      carregarConsultas();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -48,6 +77,22 @@ const ListarConsultas: React.FC = () => {
               <Text style={styles.consultaTipo}>{item.tipo}</Text>
               <Text style={styles.consultaDescricao}>{item.descricao}</Text>
               <Text style={styles.consultaData}>Data: {item.data}</Text>
+
+              <View style={styles.actionsContainer}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.editButton]}
+                  onPress={() => editarConsulta(item.id)}
+                >
+                  <Text style={styles.actionText}>Editar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.deleteButton]}
+                  onPress={() => excluirConsulta(item.id)}
+                >
+                  <Text style={styles.actionText}>Excluir</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
           contentContainerStyle={styles.listContainer}
@@ -85,11 +130,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   consultaTipo: {
     fontSize: 18,
@@ -106,6 +146,27 @@ const styles = StyleSheet.create({
     color: '#777',
     marginTop: 5,
   },
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 10,
+  },
+  actionButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    marginLeft: 10,
+  },
+  editButton: {
+    backgroundColor: '#4CAF50', // verde
+  },
+  deleteButton: {
+    backgroundColor: '#F44336', // vermelho
+  },
+  actionText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
   emptyText: {
     color: '#fff',
     textAlign: 'center',
@@ -117,6 +178,7 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     marginTop: 20,
+    marginHorizontal: 20,
   },
   buttonText: {
     color: '#fff',

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { router } from 'expo-router';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Footer from '../components/footer';
 import Header from '../components/header';
 
@@ -11,24 +12,30 @@ const RegistrarConsulta: React.FC = () => {
   const [data, setData] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const handleRegistrar = () => {
+  const handleRegistrar = async () => {
     if (!tipoTratamento.trim() || !descricao.trim()) {
       alert('Por favor, preencha todos os campos.');
       return;
     }
 
     const novaConsulta = {
-      id: Date.now().toString(), 
+      id: Date.now().toString(),
       tipo: tipoTratamento,
       descricao: descricao,
       data: data.toLocaleDateString(),
     };
 
-    
-    router.push({
-      pathname: '/ListarConsultas',
-      params: { novaConsulta: JSON.stringify(novaConsulta) },
-    });
+    try {
+      const consultasSalvas = await AsyncStorage.getItem('consultas');
+      const consultas = consultasSalvas ? JSON.parse(consultasSalvas) : [];
+      consultas.push(novaConsulta);
+      await AsyncStorage.setItem('consultas', JSON.stringify(consultas));
+
+      router.push('/ListarConsultas');
+    } catch (error) {
+      alert('Erro ao salvar a consulta.');
+      console.error(error);
+    }
   };
 
   const handleCancelar = () => {

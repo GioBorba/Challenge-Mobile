@@ -1,18 +1,43 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
 const Dashboard: React.FC = () => {
+  const [usuarioNome, setUsuarioNome] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.clear(); 
+      router.replace('/login');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      Alert.alert('Erro', 'Não foi possível fazer logout');
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#A5DAD2" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('../assets/image2.png')}
-          style={styles.logo}
-        />
+      <View style={styles.header}>
+        <Image source={require('../assets/image2.png')} style={styles.logo} />
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Text style={styles.logoutText}>Sair</Text>
+        </TouchableOpacity>
       </View>
 
-      <Text style={styles.title}>Bem-vindo ao DentalCare</Text>
+      <Text style={styles.title}>
+        Bem-vindo ao DentalCare
+      </Text>
 
       <View style={styles.cardsContainer}>
         <TouchableOpacity style={styles.card} onPress={() => router.push('/RegistrarConsulta')}>
@@ -39,20 +64,36 @@ const Dashboard: React.FC = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#86A0A6',
     padding: 20,
   },
-  logoContainer: {
-    alignItems: 'flex-end',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#86A0A6',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
   },
   logo: {
     width: 80,
     height: 80,
     borderRadius: 10,
+  },
+  logoutButton: {
+    padding: 10,
+  },
+  logoutText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 24,
@@ -78,7 +119,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3, 
+    elevation: 3,
   },
   cardIcon: {
     fontSize: 32,
