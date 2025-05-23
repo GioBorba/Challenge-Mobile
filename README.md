@@ -30,7 +30,6 @@ Link: https://youtube.com/shorts/WzZJRor8QWg?feature=share
 
 ## Como Entrar no Aplicativo
 - Use o app Expo Go para escanear o QR code exibido no terminal.
-- Como a integração com a API CRUD ainda não foi implementada, você pode inserir qualquer valor nos campos de login e senha para acessar o aplicativo. (OBS: Cadastro meramente ilustrativo nessa entrega)
 - A inicialização do projeto pode demorar um pouco, especialmente na primeira execução ou ao limpar o cache. Isso é normal, pois o Expo precisa compilar e preparar o ambiente de desenvolvimento.
 
 ## Tecnologias Utilizadas
