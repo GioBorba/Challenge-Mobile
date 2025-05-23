@@ -4,8 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
 const Dashboard: React.FC = () => {
-  const [usuarioNome, setUsuarioNome] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
 
   const handleLogout = async () => {
@@ -17,14 +15,6 @@ const Dashboard: React.FC = () => {
       Alert.alert('Erro', 'Não foi possível fazer logout');
     }
   };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#A5DAD2" />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>

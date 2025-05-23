@@ -50,9 +50,6 @@ const ListarConsultas: React.FC = () => {
     );
   };
 
-  const editarConsulta = (id: string) => {
-    router.push(`/registrar-consulta?id=${id}`);
-  };
 
   useFocusEffect(
     React.useCallback(() => {
@@ -79,12 +76,6 @@ const ListarConsultas: React.FC = () => {
               <Text style={styles.consultaData}>Data: {item.data}</Text>
 
               <View style={styles.actionsContainer}>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.editButton]}
-                  onPress={() => editarConsulta(item.id)}
-                >
-                  <Text style={styles.actionText}>Editar</Text>
-                </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[styles.actionButton, styles.deleteButton]}
@@ -99,7 +90,7 @@ const ListarConsultas: React.FC = () => {
         />
       )}
 
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/registrar-consulta')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/RegistrarConsulta')}>
         <Text style={styles.buttonText}>Registrar Nova Consulta</Text>
       </TouchableOpacity>
 

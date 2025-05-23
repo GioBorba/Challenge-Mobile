@@ -1,7 +1,6 @@
-import { Link, router } from 'expo-router'; 
+import { Link, router } from 'expo-router';
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login } from '../service/authService';
 
 const LoginScreen = () => {
@@ -9,32 +8,26 @@ const LoginScreen = () => {
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
-const handleLogin = async () => {
-  if (!email.trim() || !senha.trim()) {
-    alert('Por favor, preencha o e-mail e a senha.');
-    return;
-  }
-
-  setLoading(true);
-  try {
-
-    await login({ email, senha });
-
-    router.push('/dashboard');
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      alert(error.message);
-    } else if (typeof error === 'string') {
-      alert(error);
-    } else {
-      alert('Erro ao fazer login');
+  const handleLogin = async () => {
+    if (!email.trim() || !senha.trim()) {
+      alert('Por favor, preencha o e-mail e a senha.');
+      return;
     }
-  } finally {
-    setLoading(false);
-  }
-};
 
-
+    setLoading(true);
+    try {
+      console.log('Tentando login...');
+      const user = await login({ email, senha });
+      console.log('Login bem-sucedido:', user);
+      
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error('Erro durante login:', error);
+      alert(error?.message || 'Erro ao fazer login');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -82,6 +75,9 @@ const handleLogin = async () => {
     </View>
   );
 };
+
+
+
 
 const styles = StyleSheet.create({
   container: {
